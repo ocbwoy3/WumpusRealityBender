@@ -17,7 +17,13 @@ export const SelfbotClient = new Client({
 	}
 });
 
+let pr: any = (a: any)=>{}
+const p = new Promise(resolve=>{
+	pr = resolve;
+})
+
 SelfbotClient.on("ready", async () => {
+	pr(1)
 	assert(SelfbotClient.user);
 	console.log(
 		`[DISCORD] Selfbot - Logged in as ${SelfbotClient.user.displayName} (${SelfbotClient.user.username})`
@@ -46,5 +52,6 @@ SelfbotClient.on("ready", async () => {
 });
 
 export async function startSelfbot() {
-	await SelfbotClient.login(process.env.USER_TOKEN!);
+	SelfbotClient.login(process.env.USER_TOKEN!);
+	await p;
 }
