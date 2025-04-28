@@ -15,9 +15,9 @@ const {
 	DefaultWebSocketManagerOptions: { identifyProperties }
 } = require("@discordjs/ws");
 
-identifyProperties.browser = "Discord iOS"; // "Discord Embedded";
-identifyProperties.device = "linux"; // "Xbox Series X|S";
-identifyProperties.os = "linux"; // "Linux";
+identifyProperties.browser = "Discord iOS";
+identifyProperties.device = "@discordjs/ws";
+identifyProperties.os = "linux";
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(
 	RegisterBehavior.BulkOverwrite
