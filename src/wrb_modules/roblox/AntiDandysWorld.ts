@@ -40,9 +40,12 @@ WRBEevntManager.on("RobloxLogin", async () => {
 						p = p.concat(batchPresences);
 					}
 				} catch {
+					// roblox's api being dumb
+					/*
 					throw new RobloxError(
 						"Roblox ratelimited the anti Dandy's World requests"
 					);
+					*/
 				}
 				WRBPluginData.setPluginData("AntiDandysWorld", {
 					friendsPlaying: p

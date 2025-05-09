@@ -4,7 +4,7 @@ class EventManager {
 	private events: Record<EventType, Array<() => void>> = {
 		RobloxLogin: [],
 		SelfbotLogin: [],
-		BotLogin: [],
+		BotLogin: []
 	};
 
 	on(event: EventType, callback: () => void): void {
@@ -12,7 +12,7 @@ class EventManager {
 	}
 
 	emit(event: EventType): void {
-		this.events[event].forEach(callback => callback());
+		this.events[event].forEach((callback) => callback());
 	}
 }
 

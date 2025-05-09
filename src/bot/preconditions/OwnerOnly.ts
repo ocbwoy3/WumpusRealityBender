@@ -27,6 +27,6 @@ export class OwnerOnlyPrecondition extends Precondition {
 		return userId === process.env.OWNER_ID!
 			? this.ok()
 			: // prettier-ignore
-			  this.error({ identifier: "OwnerOnly", message: "Only the bot owner can use this command!" });
+				this.error({ identifier: "OwnerOnly", message: "Only the bot owner can use this command!" });
 	}
 }

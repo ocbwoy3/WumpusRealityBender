@@ -14,13 +14,15 @@ import {
 import {
 	ApplicationIntegrationType,
 	AttachmentBuilder,
+	ContainerBuilder,
 	InteractionContextType,
-	MessageFlags
+	MediaGalleryBuilder,
+	MessageFlags,
+	TextDisplayBuilder
 } from "discord.js";
 import { Canvas } from "@napi-rs/canvas";
 import { SelfbotClient } from "selfbot";
 import { AnyChannel } from "discord.js-selfbot-v13";
-
 
 Chart.register([
 	CategoryScale,
@@ -111,23 +113,24 @@ export class UserCommand extends Subcommand {
 			flags: eph ? [MessageFlags.Ephemeral] : []
 		});
 
-		const djsSelfChannel: AnyChannel | null = await SelfbotClient.channels.fetch(interaction.channelId);
+		const djsSelfChannel: AnyChannel | null =
+			await SelfbotClient.channels.fetch(interaction.channelId);
 		if (!djsSelfChannel || !djsSelfChannel.isText()) return;
 
 		const last100Messages = await djsSelfChannel.messages.fetch({
 			limit: 100
 		});
 
-		let users: {[id: string]: number} = {}
+		let users: { [id: string]: number } = {};
 
 		for (let [_, msg] of last100Messages) {
 			if (!users[msg.author.id]) {
-				users[msg.author.id] = 0
-			};
-			users[msg.author.id]! += 1
+				users[msg.author.id] = 0;
+			}
+			users[msg.author.id]! += 1;
 		}
 
-		const x = Object.entries(users).map(([id, msgs])=>({id, msgs}))
+		const x = Object.entries(users).map(([id, msgs]) => ({ id, msgs }));
 
 		// console.log(x.sort((a, b)=> a.m - b.m).reverse().map((a, idx)=>`${idx+1}. ${a.n} - ${a.m}`).join("\n"))
 
@@ -140,9 +143,12 @@ export class UserCommand extends Subcommand {
 					data: {
 						datasets: [
 							{
-								data: x.map(a => a.msgs),
-								backgroundColor: x.map(() =>
-									`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`
+								data: x.map((a) => a.msgs),
+								backgroundColor: x.map(
+									() =>
+										`#${Math.floor(Math.random() * 16777215)
+											.toString(16)
+											.padStart(6, "0")}`
 								)
 							}
 						]
@@ -153,20 +159,57 @@ export class UserCommand extends Subcommand {
 								display: true
 							}
 						}
-					},
+					}
 				}
 			);
 			const pngBuffer = await canvas.toBuffer("image/png");
+
+			const g = new MediaGalleryBuilder({
+				items: [
+					{
+						description:
+							"Chart of the last 100 members in the channel",
+						media: {
+							url: "attachment://graph.png"
+						}
+					}
+				]
+			});
+
+			const b = new ContainerBuilder()
+				.addMediaGalleryComponents(g)
+				.addTextDisplayComponents(
+					new TextDisplayBuilder().setContent(
+						x
+							.sort((a, b) => {
+								return a.msgs - b.msgs;
+							})
+							.reverse()
+							.splice(0, 5)
+							.map(
+								(a) => `<@${a.id}> - ${a.msgs.toLocaleString()}`
+							)
+							.join("\n")
+					)
+				);
+
 			return interaction
 				.followUp({
-					content: x.sort((a,b)=>{return a.msgs - b.msgs}).reverse().splice(0,5).map(a=>`<@${a.id}> - ${a.msgs.toLocaleString()}`).join("\n"),
+					flags: [MessageFlags.IsComponentsV2],
+					allowedMentions: {
+						parse: [],
+						roles: [],
+						users: [],
+						repliedUser: false
+					},
+					components: [b],
 					files: [
 						new AttachmentBuilder(pngBuffer, { name: "graph.png" })
 					]
 				})
-				.catch((a) => {});
+				.catch((a) => console.error(a));
 		} catch (x) {
-			console.error(x)
+			console.error(x);
 			return interaction
 				.followUp({
 					content: `> ${x}`
@@ -201,13 +244,16 @@ export class UserCommand extends Subcommand {
 					data: {
 						datasets: [
 							{
-								data: x.map(a => a.m),
-								backgroundColor: x.map(() =>
-									`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`
+								data: x.map((a) => a.m),
+								backgroundColor: x.map(
+									() =>
+										`#${Math.floor(Math.random() * 16777215)
+											.toString(16)
+											.padStart(6, "0")}`
 								)
 							}
 						],
-						labels: x.map(a => a.n)
+						labels: x.map((a) => a.n)
 					},
 					options: {
 						plugins: {
@@ -215,20 +261,55 @@ export class UserCommand extends Subcommand {
 								display: true
 							}
 						}
-					},
+					}
 				}
 			);
 			const pngBuffer = await canvas.toBuffer("image/png");
+
+			const g = new MediaGalleryBuilder({
+				items: [
+					{
+						description:
+							"Chart of the member counts of the guilds the current user is in.",
+						media: {
+							url: "attachment://graph.png"
+						}
+					}
+				]
+			});
+
+			const b = new ContainerBuilder()
+				.addMediaGalleryComponents(g)
+				.addTextDisplayComponents(
+					new TextDisplayBuilder().setContent(
+						x
+							.sort((a, b) => {
+								return a.m - b.m;
+							})
+							.reverse()
+							.splice(0, 5)
+							.map((a) => `${a.n} - ${a.m.toLocaleString()}`)
+							.join("\n")
+					)
+				);
+
 			return interaction
 				.followUp({
-					content: x.sort((a,b)=>{return a.m - b.m}).reverse().splice(0,5).map(a=>`${a.n} - ${a.m.toLocaleString()}`).join("\n"),
+					flags: [MessageFlags.IsComponentsV2],
+					allowedMentions: {
+						parse: [],
+						roles: [],
+						users: [],
+						repliedUser: false
+					},
+					components: [b],
 					files: [
 						new AttachmentBuilder(pngBuffer, { name: "graph.png" })
 					]
 				})
-				.catch((a) => {});
+				.catch((a) => console.error(a));
 		} catch (x) {
-			console.error(x)
+			console.error(x);
 			return interaction
 				.followUp({
 					content: `> ${x}`

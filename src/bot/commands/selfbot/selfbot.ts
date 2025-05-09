@@ -1,5 +1,6 @@
 import { WRBPluginData } from "@/wrb_core/moduleDataReg";
 import { Subcommand } from "@sapphire/plugin-subcommands";
+import { sleep } from "bun";
 import {
 	ArcElement,
 	BarController,
@@ -18,6 +19,7 @@ import {
 	InteractionContextType,
 	MessageFlags
 } from "discord.js";
+import { SelfbotClient } from "selfbot";
 
 Chart.register([
 	CategoryScale,
@@ -44,6 +46,10 @@ export class UserCommand extends Subcommand {
 				{
 					name: "autocomplete",
 					chatInputRun: "chatInputDebugAutocompletes"
+				},
+				{
+					name: "spam",
+					chatInputRun: "chatInputSpam"
 				},
 				{
 					name: "export_data",
@@ -90,6 +96,27 @@ export class UserCommand extends Subcommand {
 				)
 				.addSubcommand((c) =>
 					c
+						.setName("spam")
+						.setDescription("Spams a message X amount of times")
+						.addStringOption((a) =>
+							a
+								.setName("message")
+								.setDescription("Message to spam")
+								.setRequired(true)
+						)
+						.addNumberOption((a) =>
+							a
+								.setName("x")
+								.setMinValue(1)
+								.setMaxValue(10)
+								.setDescription(
+									"Times to sapm the message (Default = 1)"
+								)
+								.setRequired(false)
+						)
+				)
+				.addSubcommand((c) =>
+					c
 						.setName("export_data")
 						.setDescription("Export WRBPluginData to JSON.")
 						.addBooleanOption((a) =>
@@ -112,19 +139,54 @@ export class UserCommand extends Subcommand {
 		});
 	}
 
+	public async chatInputSpam(
+		interaction: Subcommand.ChatInputCommandInteraction
+	) {
+		await interaction.deferReply({
+			flags: [MessageFlags.Ephemeral],
+			withResponse: true
+		});
+
+		const ch = await SelfbotClient.channels.fetch(interaction.channelId);
+
+		if (!ch || !ch.isText()) {
+			return await interaction.followUp({
+				content: `Cannot get this channel`,
+				flags: MessageFlags.Ephemeral
+			});
+		}
+
+		const message = interaction.options.getString("message", true);
+		const times = interaction.options.getNumber("x") ?? 1;
+
+		for (let i = 0; i < times; i++) {
+			await ch.send(message);
+			await sleep(Math.floor(Math.random() * (125 - 75 + 1)) + 75);
+		}
+
+		await interaction.followUp({
+			content: `Message sent ${times} time(s).`,
+			flags: [MessageFlags.Ephemeral]
+		});
+	}
+
 	public async chatInputExportWRBData(
 		interaction: Subcommand.ChatInputCommandInteraction
 	) {
 		let eph = interaction.options.getBoolean("ephemeral", false);
 		if (eph === null) eph = true;
-		interaction.reply({
-			flags: eph ? [MessageFlags.Ephemeral] : [],
-			files: [
-				new AttachmentBuilder(
-					Buffer.from(JSON.stringify(WRBPluginData.getAllPluginData())),
-					{ name: "WRBPluginData.json" }
-				)
-			]
-		}).catch(a=>console.error(a))
+		interaction
+			.reply({
+				flags: eph ? [MessageFlags.Ephemeral] : [],
+				files: [
+					new AttachmentBuilder(
+						Buffer.from(
+							JSON.stringify(WRBPluginData.getAllPluginData())
+						),
+						{ name: "WRBPluginData.json" }
+					)
+				]
+			})
+			.catch((a) => console.error(a));
 	}
 }

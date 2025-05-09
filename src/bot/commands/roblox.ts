@@ -21,9 +21,7 @@ export class UserCommand extends Subcommand {
 		super(context, {
 			...options,
 			name: "roblox",
-			preconditions: [
-				"OwnerOnly" as any
-			],
+			preconditions: ["OwnerOnly" as any],
 			subcommands: [
 				{
 					name: "status",
@@ -36,6 +34,11 @@ export class UserCommand extends Subcommand {
 				{
 					name: "history",
 					chatInputRun: "chatInputLastPlayed"
+				},
+				{
+					name: "recommendations",
+					chatInputRun:
+						"chatInputMakeFunOfRobloxsShittyRecommendations"
 				}
 			]
 		});
@@ -88,7 +91,16 @@ export class UserCommand extends Subcommand {
 				.addSubcommand((command) =>
 					command
 						.setName("history")
-						.setDescription("Gets the currently logged in user's last 9 played games.")
+						.setDescription(
+							"Gets the currently logged in user's last 9 played games."
+						)
+				)
+				.addSubcommand((command) =>
+					command
+						.setName("recommendations")
+						.setDescription(
+							"Gets top 20 recommended games by Roblox."
+						)
 				)
 		);
 	}
@@ -236,8 +248,45 @@ export class UserCommand extends Subcommand {
 		});
 		try {
 			const omni = await getOmniRecommendationsHome();
-			const home = omni.sorts.find(a=>a.topicId===100000003)!
-			const g: string[] = home.recommendationList.splice(0,9).map(a=>`> ${omni.contentMetadata.Game[a.contentId.toString()]!.name}`)
+			// 100000000: roblox's shit recommendations
+			const home = omni.sorts.find((a) => a.topicId === 100000003)!;
+			const g: string[] = home.recommendationList
+				.splice(0, 9)
+				.map(
+					(a) =>
+						`> ${omni.contentMetadata.Game[a.contentId.toString()]!.name}`
+				);
+			return interaction
+				.followUp({
+					content: g.join("\n")
+				})
+				.catch((a) => {});
+		} catch (x) {
+			return interaction
+				.followUp({
+					content: `> ${x}`
+				})
+				.catch((a) => {});
+		}
+	}
+
+	public async chatInputMakeFunOfRobloxsShittyRecommendations(
+		interaction: Subcommand.ChatInputCommandInteraction
+	) {
+		await interaction.deferReply({
+			withResponse: true,
+			flags: []
+		});
+		try {
+			const omni = await getOmniRecommendationsHome();
+			// 100000000: roblox's shit recommendations
+			const home = omni.sorts.find((a) => a.topicId === 100000000)!;
+			const g: string[] = home.recommendationList
+				.splice(0, 20)
+				.map(
+					(a) =>
+						`> ${omni.contentMetadata.Game[a.contentId.toString()]!.name}`
+				);
 			return interaction
 				.followUp({
 					content: g.join("\n")

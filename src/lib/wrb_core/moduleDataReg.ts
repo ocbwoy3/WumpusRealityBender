@@ -3,7 +3,10 @@ type PluginDataMap = {
 	WRBDummyDataPlugin: WRBDummyData;
 };
 
-export const ALL_PLUGIN_NAMES = ["AntiDandysWorld", "WRBDummyDataPlugin"] as const;
+export const ALL_PLUGIN_NAMES = [
+	"AntiDandysWorld",
+	"WRBDummyDataPlugin"
+] as const;
 type PLUGIN_NAMES = keyof PluginDataMap;
 
 export type AntiDandysWorldPluginData = {
@@ -41,7 +44,9 @@ export class PluginDataManager {
 	getPluginData<K extends PLUGIN_NAMES>(
 		pluginName: K
 	): PluginDataMap[K] | undefined {
-		return this.pluginDataMap.get(pluginName) as PluginDataMap[K] | undefined;
+		return this.pluginDataMap.get(pluginName) as
+			| PluginDataMap[K]
+			| undefined;
 	}
 
 	hasPluginData(pluginName: PLUGIN_NAMES): boolean {

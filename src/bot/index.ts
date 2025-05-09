@@ -45,9 +45,11 @@ export const BotClient = new SapphireClient({
 	}
 });
 
-BotClient.on(Events.ClientReady,()=>{
+BotClient.on(Events.ClientReady, () => {
 	assert(BotClient.user);
-	console.log(`[DISCORD] Bot - Logged in as ${BotClient.user.username}#${BotClient.user.discriminator} (${BotClient.user.id})`)
+	console.log(
+		`[DISCORD] Bot - Logged in as ${BotClient.user.username}#${BotClient.user.discriminator} (${BotClient.user.id})`
+	);
 });
 
 export async function startBot() {

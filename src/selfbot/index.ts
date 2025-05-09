@@ -1,4 +1,4 @@
-import { Client, SpotifyRPC } from "discord.js-selfbot-v13";
+import { Client, RichPresence } from "discord.js-selfbot-v13";
 import assert from "node:assert";
 
 // const kurwaSpotify = new SpotifyRPC(SelfbotClient)
@@ -17,36 +17,17 @@ export const SelfbotClient = new Client({
 	}
 });
 
-let pr: any = (a: any)=>{}
-const p = new Promise(resolve=>{
+let pr: any = (a: any) => {};
+const p = new Promise((resolve) => {
 	pr = resolve;
-})
+});
 
 SelfbotClient.on("ready", async () => {
-	pr(1)
+	pr(1);
 	assert(SelfbotClient.user);
 	console.log(
 		`[DISCORD] Selfbot - Logged in as ${SelfbotClient.user.displayName} (${SelfbotClient.user.username})`
 	);
-
-	const _spotify = new SpotifyRPC(SelfbotClient)
-		.setAssetsLargeImage("spotify:ab67616d00001e021ea0c62b2339cbf493a999ad")
-		.setAssetsSmallImage("spotify:ab6761610000f17839ba6dcd4355c03de0b50918")
-		.setArtistIds(
-			"2YZyLoL8N0Wb9xBt1NhZWg",
-		)
-		.setAssetsLargeText("Not Like Us - Single")
-		.setAssetsSmallText("Kendrick Lamar")
-		.setDetails("Not Like Us")
-		.setState("Kendrick Lamar")
-		.setSongId("6AI3ezQ4o3HUoP6Dhudph3")
-		.setAlbumId("5JjnoGJyOxfSZUZtk2rRwZ")
-		.setStartTimestamp(Date.now())
-		.setEndTimestamp(8640000000000);
-
-	// SelfbotClient.user.setPresence({
-	// 	activities: [_spotify]
-	// });
 
 	// SelfbotClient.user.setSamsungActivity("com.YostarJP.BlueArchive", "STOP")
 });
