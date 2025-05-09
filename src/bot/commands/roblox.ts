@@ -6,10 +6,12 @@ import {
 } from "discord.js";
 import { prisma } from "@/prisma";
 import {
+	getAuthenticatedUser,
 	getIdFromUsername,
 	getPresences,
 	getUniverseInfo,
-	getUserInfo
+	getUserInfo,
+	sendFriendRequest
 } from "noblox.js";
 import { getOmniRecommendationsHome } from "@/roblox/omniRecommendations";
 
@@ -34,6 +36,10 @@ export class UserCommand extends Subcommand {
 				{
 					name: "history",
 					chatInputRun: "chatInputLastPlayed"
+				},
+				{
+					name: "add_friend",
+					chatInputRun: "chatInputSendFriendRequest"
 				},
 				{
 					name: "recommendations",
@@ -86,6 +92,18 @@ export class UserCommand extends Subcommand {
 									"The Roblox to link to (None = unlink)"
 								)
 								.setRequired(false)
+						)
+				)
+				.addSubcommand((command) =>
+					command
+						.setName("add_friend")
+						.setDescription("Sends a friend request to a Robloxian on behalf of you")
+						.addStringOption((option) =>
+							option
+								.setName("user")
+								.setDescription(
+									"The Roblox user to add as a friend"
+								)
 						)
 				)
 				.addSubcommand((command) =>
@@ -228,6 +246,35 @@ export class UserCommand extends Subcommand {
 			return interaction
 				.followUp({
 					content: `> Successfully linked <@${user.id}> to [${ui.displayName}](https://fxroblox.com/users/${ui.id})!`
+				})
+				.catch((a) => {});
+		} catch (x) {
+			return interaction
+				.followUp({
+					content: `> ${x}`
+				})
+				.catch((a) => {});
+		}
+	}
+
+	public async chatInputSendFriendRequest(
+		interaction: Subcommand.ChatInputCommandInteraction
+	) {
+		await interaction.deferReply({
+			withResponse: true,
+			flags: []
+		});
+		const user = interaction.options.getString("user", true);
+		try {
+			const robloxian_n = await getIdFromUsername(user)
+			await sendFriendRequest(robloxian_n)
+
+			const authed = await getAuthenticatedUser()
+
+			const ui = await getUserInfo(robloxian_n);
+			return interaction
+				.followUp({
+					content: `> Successfully sent a friend request to [${ui.displayName}](https://fxroblox.com/users/${ui.id}) on the behalf of [${authed.displayName}](https://fxroblox.com/users/${authed.id})!`
 				})
 				.catch((a) => {});
 		} catch (x) {
