@@ -95,7 +95,7 @@ export class UserCommand extends Subcommand {
 					c
 						.setName("eval")
 						.setDescription(
-							"Evaluates arbitrary JavaScript or TypeScript code on the bot's process (DANGEROUS)"
+							"Evaluates arbitrary JavaScript code on the bot's process (DANGEROUS)"
 						)
 						.addStringOption((a) =>
 							a
@@ -226,7 +226,7 @@ export class UserCommand extends Subcommand {
 			"ts") as "js" | "ts";
 
 		if (lang === "ts") {
-			code = new Transpiler().transformSync(code);
+			code = new Transpiler({ target: "node" }).transformSync(code);
 		}
 
 		try {

@@ -54,6 +54,10 @@ export class UserCommand extends Subcommand {
 				{
 					name: "export_data",
 					chatInputRun: "chatInputExportWRBData"
+				},
+				{
+					name: "summon",
+					chatInputRun: "chatInputJoinServer"
 				}
 			]
 		});
@@ -112,6 +116,23 @@ export class UserCommand extends Subcommand {
 								.setDescription(
 									"Times to sapm the message (Default = 1)"
 								)
+								.setRequired(false)
+						)
+				)
+				.addSubcommand((c) =>
+					c
+						.setName("summon")
+						.setDescription("Joins a server as the current user")
+						.addStringOption((a) =>
+							a
+								.setName("code")
+								.setDescription("Invite code")
+								.setRequired(true)
+						)
+						.addStringOption((a) =>
+							a
+								.setName("confirm")
+								.setDescription("Enter EXACTLY this string to join the server (risky): \"YES, PLEASE!\"")
 								.setRequired(false)
 						)
 				)
@@ -188,5 +209,38 @@ export class UserCommand extends Subcommand {
 				]
 			})
 			.catch((a) => console.error(a));
+	}
+
+	public async chatInputJoinServer(
+		interaction: Subcommand.ChatInputCommandInteraction
+	) {
+		await interaction.deferReply({
+			flags: [MessageFlags.Ephemeral],
+			withResponse: true
+		});
+
+		const code = interaction.options.getString("code",true)
+		const conf = interaction.options.getString("confirm",false) == "YES, PLEASE!"
+
+		if (!conf) {
+			return await interaction.followUp({
+				content: `No confirmation!`,
+				flags: [MessageFlags.Ephemeral]
+			});
+		}
+
+		try {
+			await SelfbotClient.acceptInvite(code)
+		} catch(e_) {
+			return await interaction.followUp({
+				content: `${e_}`,
+				flags: [MessageFlags.Ephemeral]
+			});
+		}
+
+		return await interaction.followUp({
+			content: `Joined the guild!`,
+			flags: [MessageFlags.Ephemeral]
+		});
 	}
 }
