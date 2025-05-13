@@ -20,6 +20,7 @@ export class UserCommand extends Subcommand {
 	) {
 		super(context, {
 			...options,
+
 			name: "selfbot-debug",
 			preconditions: ["OwnerOnly" as any],
 			subcommands: [

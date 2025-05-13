@@ -16,6 +16,7 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
+		"@google/genai": "^0.13.0",
 		"@napi-rs/canvas": "^0.1.69",
 		"@prisma/client": "^6.6.0",
 		"@sapphire/framework": "^5.3.3",

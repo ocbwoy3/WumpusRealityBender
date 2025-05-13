@@ -11,3 +11,8 @@ model DiscordUserReg {
     id        String  @id
     roblox_id String?
 }
+
+model AIUserAlias {
+    id    String  @id
+    alias String?
+}
