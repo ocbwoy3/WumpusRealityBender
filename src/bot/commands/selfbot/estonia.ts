@@ -69,7 +69,7 @@ export class SlashCommand extends Command {
 			const msg = await ch.messages.fetch(interaction.targetId)
 
 			for (const emoji of ESTONIA) {
-				await msg.react(emoji, true);
+				await msg.react(emoji);
 				await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 + 50));
 			}
 			await interaction.followUp({
