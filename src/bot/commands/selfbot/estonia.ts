@@ -58,36 +58,47 @@ export class SlashCommand extends Command {
 	public override async contextMenuRun(
 		interaction: Command.ContextMenuCommandInteraction
 	) {
+		if (!SelfbotClient.user?.premiumType) {
+			await interaction.reply({
+				content: `Your broke ass can't afford Discord Nitro${!!interaction.guildId ? " (This message is hidden in guilds)" : ""}`,
+				flags: !!interaction.guildId ? [MessageFlags.Ephemeral] : [],
+				allowedMentions: {
+					parse: [],
+					repliedUser: false,
+					users: [],
+					roles: []
+				}
+			});
+			return;
+		}
+
 		await interaction.deferReply({
 			flags: [MessageFlags.Ephemeral],
 			withResponse: true
 		});
 
-		if (!SelfbotClient.user?.premiumType) {
-			await interaction.followUp({
-				content: "Your broke ass can't afford Discord Nitro",
-				flags: [ MessageFlags.Ephemeral ]
-			})
-		}
-
 		try {
-			const ch = await SelfbotClient.channels.fetch(interaction.channelId!);
+			const ch = await SelfbotClient.channels.fetch(
+				interaction.channelId!
+			);
 			if (!ch || !ch.isText()) return;
-			const msg = await ch.messages.fetch(interaction.targetId)
+			const msg = await ch.messages.fetch(interaction.targetId);
 
 			for (const emoji of ESTONIA) {
 				await msg.react(emoji);
-				await new Promise((resolve) => setTimeout(resolve, Math.random() * 50 + 50));
+				await new Promise((resolve) =>
+					setTimeout(resolve, Math.random() * 50 + 50)
+				);
 			}
 			await interaction.followUp({
 				content: "done",
-				flags: [ MessageFlags.Ephemeral ]
-			})
+				flags: [MessageFlags.Ephemeral]
+			});
 		} catch {
 			await interaction.followUp({
 				content: ":(",
-				flags: [ MessageFlags.Ephemeral ]
-			})
+				flags: [MessageFlags.Ephemeral]
+			});
 		}
 	}
 }
