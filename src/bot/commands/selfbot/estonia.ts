@@ -63,6 +63,13 @@ export class SlashCommand extends Command {
 			withResponse: true
 		});
 
+		if (!SelfbotClient.user?.premiumType) {
+			await interaction.followUp({
+				content: "Your broke ass can't afford Discord Nitro",
+				flags: [ MessageFlags.Ephemeral ]
+			})
+		}
+
 		try {
 			const ch = await SelfbotClient.channels.fetch(interaction.channelId!);
 			if (!ch || !ch.isText()) return;

@@ -1,3 +1,4 @@
+import { RobloxError } from "@/Errors";
 import { randomUUIDv7 } from "bun";
 
 type RecommendationEntry = {
@@ -57,29 +58,34 @@ export type OmniRecommendation = {
 };
 
 export async function getOmniRecommendationsHome(): Promise<OmniRecommendation> {
-	const data = await fetch(
-		`https://apis.roblox.com/discovery-api/omni-recommendation`,
-		{
-			method: "POST",
-			headers: {
-				"User-Agent": "OCbwoy3ChanAI/1.0",
-				Accept: "application/json, text/plain, */*",
-				"Accept-Encoding": "gzip, deflate, br, zstd",
-				"Content-Type": "application/json;charset=UTF-8",
-				Cookie: `.ROBLOSECURITY=${process.env.ROBLOSECURITY!}`
-			},
-			body: JSON.stringify({
-				pageType: "Home",
-				sessionId: randomUUIDv7(),
-				supportedTreatmentTypes: ["SortlessGrid"],
-				authIntentData: null,
-				cpuCores: 4,
-				maxResolution: "1920x1080",
-				maxMemory: 8192
-			})
-		}
-	);
-	return (await data.json()) as OmniRecommendation;
+	try {
+		const data = await fetch(
+			`https://apis.roblox.com/discovery-api/omni-recommendation`,
+			{
+				method: "POST",
+				headers: {
+					"User-Agent": "OCbwoy3ChanAI/1.0",
+					Accept: "application/json, text/plain, */*",
+					"Accept-Encoding": "gzip, deflate, br, zstd",
+					"Content-Type": "application/json;charset=UTF-8",
+					Cookie: `.ROBLOSECURITY=${process.env.ROBLOSECURITY!}`
+				},
+				body: JSON.stringify({
+					pageType: "Home",
+					sessionId: randomUUIDv7(),
+					supportedTreatmentTypes: ["SortlessGrid"],
+					authIntentData: null,
+					cpuCores: 4,
+					maxResolution: "1920x1080",
+					maxMemory: 8192
+				})
+			}
+		);
+		if (!data.ok) throw new RobloxError("Roblox is down");
+		return (await data.json()) as OmniRecommendation;
+	} catch {
+		throw new RobloxError("Roblox is down")
+	}
 }
 
 // https://apis.roblox.com/discovery-api/omni-recommendation
