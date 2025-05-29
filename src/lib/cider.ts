@@ -1,4 +1,5 @@
-const nowPlayingEndpoint = "http://localhost:10767/api/v1/playback/now-playing";
+let currIP = "http://localhost:10767"
+let nowPlayingEndpoint = "http://localhost:10767/api/v1/playback/now-playing";
 
 interface APIResponse<T> {
 	status: "ok" | string;
@@ -18,6 +19,24 @@ type NowPlayingData = {
 	inLibrary: boolean;
 	inFavorites: boolean;
 };
+
+export async function fetchCurrentIP(): Promise<string> {
+	try {
+		const response = await fetch("https://ifconfig.me");
+		if (!response.ok) {
+			throw new Error(`Failed to fetch IP: ${response.statusText}`);
+		}
+		const data = {ip: await response.text()} as { ip: string };
+		currIP = data.ip;
+		nowPlayingEndpoint.replaceAll("localhost",currIP)
+		return currIP;
+	} catch (error) {
+		console.error(`Error fetching current IP: ${error}`);
+		return currIP; // Fallback to the default IP
+	}
+}
+
+fetchCurrentIP().catch(a=>{})
 
 export async function getNowPlaying(): Promise<NowPlayingData | null> {
 	try {

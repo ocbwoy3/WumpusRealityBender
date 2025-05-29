@@ -80,7 +80,7 @@ export class UserCommand extends Subcommand {
 					content: !music ? "Can't fetch :(" : [
 						`> **${music.name}** by ${music.artistName}`,
 						`> ${music.inFavorites ? "[inFavourites] " : ""}${music.inLibrary ? "[inLibrary] " : ""}[${music.albumName}](${music.artwork.url})`,
-						`> ${music.url}`
+						`> <${music.url}>`
 					].join("\n")
 				})
 				.catch((a) => {});
