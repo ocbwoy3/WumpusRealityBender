@@ -18,6 +18,7 @@ type NowPlayingData = {
 	url: string;
 	inLibrary: boolean;
 	inFavorites: boolean;
+	contentRating: "explicit" | string
 };
 
 export async function fetchCurrentIP(): Promise<string> {
@@ -36,7 +37,7 @@ export async function fetchCurrentIP(): Promise<string> {
 	}
 }
 
-fetchCurrentIP().catch(a=>{})
+// fetchCurrentIP().catch(a=>{})
 
 export async function getNowPlaying(): Promise<NowPlayingData | null> {
 	try {

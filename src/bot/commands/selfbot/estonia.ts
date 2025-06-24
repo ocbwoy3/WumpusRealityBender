@@ -59,17 +59,19 @@ export class SlashCommand extends Command {
 		interaction: Command.ContextMenuCommandInteraction
 	) {
 		if (!SelfbotClient.user?.premiumType) {
-			await interaction.reply({
-				content: `Your broke ass can't afford Discord Nitro${!!interaction.guildId ? " (This message is hidden in guilds)" : ""}`,
-				flags: !!interaction.guildId ? [MessageFlags.Ephemeral] : [],
-				allowedMentions: {
-					parse: [],
-					repliedUser: false,
-					users: [],
-					roles: []
-				}
-			});
-			return;
+			if (interaction.guildId !== "1309695380719534150") {
+				await interaction.reply({
+					content: `Your broke ass can't afford Discord Nitro!!!`,
+					flags: [MessageFlags.Ephemeral],
+					allowedMentions: {
+						parse: [],
+						repliedUser: false,
+						users: [],
+						roles: []
+					}
+				});
+				return;
+			}
 		}
 
 		await interaction.deferReply({

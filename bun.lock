@@ -6,7 +6,7 @@
       "dependencies": {
         "@google/genai": "^0.13.0",
         "@napi-rs/canvas": "^0.1.69",
-        "@ocbwoy3/libocbwoy3": "^0.0.4",
+        "@ocbwoy3/libocbwoy3": "^0.0.5",
         "@prisma/client": "^6.6.0",
         "@sapphire/framework": "^5.3.3",
         "@sapphire/plugin-hmr": "^3.0.2",
@@ -126,7 +126,7 @@
 
     "@napi-rs/canvas-win32-x64-msvc": ["@napi-rs/canvas-win32-x64-msvc@0.1.69", "", { "os": "win32", "cpu": "x64" }, "sha512-Q4YA8kVnKarApBVLu7F8icGlIfSll5Glswo5hY6gPS4Is2dCI8+ig9OeDM8RlwYevUIxKq8lZBypN8Q1iLAQ7w=="],
 
-    "@ocbwoy3/libocbwoy3": ["@ocbwoy3/libocbwoy3@0.0.4", "", {}, "sha512-I5gebPVIDiJeejivVA67QumazkEtrtP//fWJZeH+Z2uB/nq2BI9vKJevWqQqTu4yrmUqwQV76tC22hLsvAyTIg=="],
+    "@ocbwoy3/libocbwoy3": ["@ocbwoy3/libocbwoy3@0.0.5", "", {}, "sha512-zDm11Z5xzmOgsDg/E8Z9UFlMYjKdkUg28YE/Fwb0+NoVx5gKyj3D9eSbvBAOfTISTKkI3X2FTWHg3ehvyLz1Fg=="],
 
     "@prisma/client": ["@prisma/client@6.6.0", "", { "peerDependencies": { "prisma": "*", "typescript": ">=5.1.0" }, "optionalPeers": ["prisma", "typescript"] }, "sha512-vfp73YT/BHsWWOAuthKQ/1lBgESSqYqAWZEYyTdGXyFAHpmewwWL2Iz6ErIzkj4aHbuc6/cGSsE6ZY+pBO04Cg=="],
 
