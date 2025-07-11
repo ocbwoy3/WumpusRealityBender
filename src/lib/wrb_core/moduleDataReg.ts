@@ -1,16 +1,16 @@
 type PluginDataMap = {
-	AntiDandysWorld: AntiDandysWorldPluginData;
+	GMF: GameRegPluginData;
 	WRBDummyDataPlugin: WRBDummyData;
 };
 
 export const ALL_PLUGIN_NAMES = [
-	"AntiDandysWorld",
+	"GMF",
 	"WRBDummyDataPlugin"
 ] as const;
 type PLUGIN_NAMES = keyof PluginDataMap;
 
-export type AntiDandysWorldPluginData = {
-	friendsPlaying: number[];
+export type GameRegPluginData = {
+	stuff: {id: string, game: string, place: string}[];
 };
 
 export type WRBDummyData = {
@@ -25,8 +25,8 @@ export class PluginDataManager {
 			PLUGIN_NAMES,
 			PluginDataMap[PLUGIN_NAMES]
 		>();
-		this.setPluginData("AntiDandysWorld", {
-			friendsPlaying: []
+		this.setPluginData("GMF", {
+			stuff: []
 		});
 		this.setPluginData("WRBDummyDataPlugin", {
 			hi: true

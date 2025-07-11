@@ -3,7 +3,7 @@
 import { RobloxError } from "@/Errors";
 import { WRBEevntManager } from "@/wrb_core";
 import {
-	AntiDandysWorldPluginData,
+	GameRegPluginData,
 	WRBPluginData
 } from "@/wrb_core/moduleDataReg";
 import {
@@ -47,11 +47,14 @@ WRBEevntManager.on("RobloxLogin", async () => {
 					);
 					*/
 				}
-				WRBPluginData.setPluginData("AntiDandysWorld", {
-					friendsPlaying: p
-						.filter((a) => DANDYS_WORLD.includes(a.placeId || 0))
-						.map((a) => a.userId)
-						.filter((id): id is number => id !== undefined)
+				WRBPluginData.setPluginData("GMF", {
+					stuff: p.filter(a => !!a.gameId && !!a.userId).map(a => {
+						return {
+							id: a.userId?.toString() || "",
+							game: a.gameId?.toString() || "",
+							place: a.placeId?.toString() || ""
+						};
+					})
 				});
 			} catch (x) {
 				console.error(x);
@@ -59,9 +62,9 @@ WRBEevntManager.on("RobloxLogin", async () => {
 		}, 5000);
 	} catch {
 		console.error(
-			"[WRB] Failed to load anti dandys world cuz of dumb error"
+			"[WRB] Failed to stupid error"
 		);
 	}
 });
 
-console.log("[INFO] WRB Module Loaded: Anti Dandy's World");
+console.log("[INFO] WRB Module Loaded: Game registry thing");

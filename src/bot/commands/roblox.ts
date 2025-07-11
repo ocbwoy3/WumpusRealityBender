@@ -1,19 +1,30 @@
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import {
 	ApplicationIntegrationType,
+	ContainerBuilder,
 	InteractionContextType,
-	MessageFlags
+	MessageFlags,
+	TextDisplayBuilder
 } from "discord.js";
 import { prisma } from "@/prisma";
 import {
 	getAuthenticatedUser,
 	getIdFromUsername,
+	getPlaceInfo,
 	getPresences,
 	getUniverseInfo,
 	getUserInfo,
 	sendFriendRequest
 } from "noblox.js";
 import { getOmniRecommendationsHome } from "@/roblox/omniRecommendations";
+import { TimedDataCache } from "@ocbwoy3/libocbwoy3";
+import { WRBPluginData } from "@/wrb_core/moduleDataReg";
+import { search } from "fast-fuzzy";
+import { getServerUDMUXDetails } from "@/roblox";
+import { SubdivisionIsoFriendlyNames, udmuxGameInfo, udmuxSessionId } from "@/roblox/udmuxTypes";
+
+const gameNameCache = new TimedDataCache(60_000);
+const skidCache = new TimedDataCache(60_000);
 
 export class UserCommand extends Subcommand {
 	public constructor(
@@ -45,6 +56,181 @@ export class UserCommand extends Subcommand {
 					name: "recommendations",
 					chatInputRun:
 						"chatInputMakeFunOfRobloxsShittyRecommendations"
+				},
+				{
+					name: "udmux",
+					async chatInputRun(
+						interaction: Subcommand.ChatInputCommandInteraction
+					) {
+						const friend = interaction.options.getString(
+							"roblox_friend",
+							true
+						);
+						await interaction.deferReply({
+							flags: [MessageFlags.Ephemeral],
+							withResponse: true
+						});
+						const skids =
+							WRBPluginData.getPluginData("GMF")?.stuff || [];
+						const mr = skids.find((a) => a.id === friend);
+						if (!mr) {
+							return await interaction.followUp({
+								content: "can't find plr :(",
+								flags: [MessageFlags.Ephemeral]
+							});
+						}
+						try {
+							const { jobId, joinScript } =
+								(await getServerUDMUXDetails(
+									mr.place,
+									mr.game
+								)) as udmuxGameInfo;
+
+							const containers = [
+								new ContainerBuilder()
+									.setAccentColor(0x89b4fa)
+									.addTextDisplayComponents(
+										new TextDisplayBuilder().setContent(
+											`### ${jobId} (${mr.place})
+												**Server Address:** \`${joinScript.MachineAddress}:${joinScript.ServerPort}\`
+												**UDMUX Server Address:** \`${
+													!joinScript
+														.UdmuxEndpoints[0]
+														? "none"
+														: `${joinScript.UdmuxEndpoints[0].Address}:${joinScript.UdmuxEndpoints[0].Port}`
+												}\`
+												**Client Public UserId:** ${joinScript.UserId}
+												**Client Country:** ${joinScript.CountryCode}
+												**Roblox Data Center ID:** ${joinScript.DataCenterId}
+												**Server RCCService Version:** ${joinScript.RccVersion}
+												`.replaceAll("\t", "")
+										)
+									)
+							];
+
+							try {
+								const lol = JSON.parse(joinScript.SessionId) as udmuxSessionId;
+								const x = lol.SubdivisionIso in SubdivisionIsoFriendlyNames
+									? `${SubdivisionIsoFriendlyNames[lol.SubdivisionIso as keyof typeof SubdivisionIsoFriendlyNames]} - ${lol.SubdivisionIso}`
+									: lol.SubdivisionIso;
+								containers.push(new ContainerBuilder()
+								.setAccentColor(0x89b4fa)
+								.addTextDisplayComponents(
+									new TextDisplayBuilder().setContent(
+										`**Client User Real Age:** ${lol.Age}
+										**Policy Country ID:** ${lol.PolicyCountryId}
+										**Client VC Enabled:** ${lol.IsUserVoiceChatEnabled === true ? "yes": "no"}
+										**Client Face Anim Enabled:** ${lol.IsUserAvatarVideoEnabled === true ? "yes": "no"}
+										**Game Join Region:** ${lol.GameJoinRegion}
+										**Client Subdivision ISO:** ${x}`.replaceAll("\t", "")
+									)
+								))
+							} catch {}
+
+							return await interaction.followUp({
+								components: containers,
+								flags: [
+									MessageFlags.Ephemeral,
+									MessageFlags.IsComponentsV2
+								]
+							});
+						} catch (e_) {
+							console.error(e_);
+							return await interaction.followUp({
+								content: ":(",
+								flags: [MessageFlags.Ephemeral]
+							});
+						}
+					}
+				},
+				{
+					name: "whoplayin",
+					async chatInputRun(
+						interaction: Subcommand.ChatInputCommandInteraction
+					) {
+						const game = interaction.options.getString(
+							"game",
+							true
+						);
+						await interaction.deferReply({
+							flags: [MessageFlags.Ephemeral],
+							withResponse: true
+						});
+						const skids =
+							WRBPluginData.getPluginData("GMF")?.stuff || [];
+						let gameNames: { [name: string]: string } = {};
+
+						for (let skid of skids) {
+							try {
+								let x = gameNameCache.get(skid.place);
+								if (!x) {
+									const gi = await getPlaceInfo([
+										Number(skid.place)
+									]);
+									x = gi[0]!.name;
+								}
+								gameNameCache.set(skid.place, x, 900_000); // 15 min
+								gameNames[`${x}`] = skid.place;
+							} catch {}
+						}
+
+						const FUZZY_OPTIONS = {
+							threshold: 0.5,
+							ignoreCase: true,
+							ignoreSymbols: true,
+							returnMatchData: true
+						};
+
+						const nameMatches = search(
+							game,
+							Object.entries(gameNames),
+							{
+								...FUZZY_OPTIONS,
+								keySelector: (gm) => gm[0],
+								returnMatchData: true
+							}
+						);
+
+						if (nameMatches.length === 0) {
+							return await interaction.followUp({
+								content: "can't find game :(",
+								flags: [MessageFlags.Ephemeral]
+							});
+						}
+
+						let skidsToAdd = [];
+
+						for (let skid of skids.filter(
+							(a) => a.place === nameMatches[0]!.item[1]
+						)) {
+							try {
+								let x = skidCache.get(skid.id);
+								if (!x) {
+									const gi = await getUserInfo(
+										Number(skid.id)
+									);
+									x = `[${gi.displayName} (@${gi.name})](<https://roblox.com/users/${gi.id}>)`;
+								}
+								skidCache.set(skid.id, x, 900_000); // 15 min
+								skidsToAdd.push(x);
+							} catch {}
+						}
+
+						if (skidsToAdd.length === 0) {
+							return await interaction.followUp({
+								content: "can't find plrs :(",
+								flags: [MessageFlags.Ephemeral]
+							});
+						}
+
+						await interaction.followUp({
+							content:
+								`People playing **${
+									nameMatches[0]!.item[0]
+								}** rn:\n` + skidsToAdd.join("\n"),
+							flags: [MessageFlags.Ephemeral]
+						});
+					}
 				}
 			]
 		});
@@ -97,7 +283,9 @@ export class UserCommand extends Subcommand {
 				.addSubcommand((command) =>
 					command
 						.setName("add_friend")
-						.setDescription("Sends a friend request to a Robloxian on behalf of you")
+						.setDescription(
+							"Sends a friend request to a Robloxian on behalf of you"
+						)
 						.addStringOption((option) =>
 							option
 								.setName("user")
@@ -118,6 +306,33 @@ export class UserCommand extends Subcommand {
 						.setName("recommendations")
 						.setDescription(
 							"Gets top 20 recommended games by Roblox."
+						)
+				)
+				.addSubcommand((command) =>
+					command
+						.setName("whoplayin")
+						.setDescription(
+							"Fuzzy finds a game your friends are playing, then lists it out"
+						)
+						.addStringOption((option) =>
+							option
+								.setName("game")
+								.setDescription(
+									"The game your friends are playing"
+								)
+						)
+				)
+				.addSubcommand((command) =>
+					command
+						.setName("udmux")
+						.setDescription(
+							"Gets the UDMUX server details of a current roblox friend"
+						)
+						.addStringOption((option) =>
+							option
+								.setName("roblox_friend")
+								.setDescription("Your friend to get details of")
+								.setAutocomplete(true)
 						)
 				)
 		);
@@ -175,7 +390,9 @@ export class UserCommand extends Subcommand {
 								ui.id
 							}) is playing **[${
 								uni?.name || "???"
-							}](<https://roblox.com/games/${uni?.rootPlaceId}>)**.`
+							}](<https://roblox.com/games/${
+								uni?.rootPlaceId
+							}>)**.`
 						})
 						.catch((a) => {});
 				}
@@ -196,7 +413,9 @@ export class UserCommand extends Subcommand {
 								ui.id
 							}) is editing **[${
 								uni?.name || "???"
-							}](<https://roblox.com/games/${uni?.rootPlaceId}>)**.`
+							}](<https://roblox.com/games/${
+								uni?.rootPlaceId
+							}>)**.`
 						})
 						.catch((a) => {});
 				}
@@ -266,10 +485,10 @@ export class UserCommand extends Subcommand {
 		});
 		const user = interaction.options.getString("user", true);
 		try {
-			const robloxian_n = await getIdFromUsername(user)
-			await sendFriendRequest(robloxian_n)
+			const robloxian_n = await getIdFromUsername(user);
+			await sendFriendRequest(robloxian_n);
 
-			const authed = await getAuthenticatedUser()
+			const authed = await getAuthenticatedUser();
 
 			const ui = await getUserInfo(robloxian_n);
 			return interaction
@@ -301,7 +520,10 @@ export class UserCommand extends Subcommand {
 				.splice(0, 9)
 				.map(
 					(a) =>
-						`> ${omni.contentMetadata.Game[a.contentId.toString()]!.name}`
+						`> ${
+							omni.contentMetadata.Game[a.contentId.toString()]!
+								.name
+						}`
 				);
 			return interaction
 				.followUp({
@@ -332,7 +554,10 @@ export class UserCommand extends Subcommand {
 				.splice(0, 20)
 				.map(
 					(a) =>
-						`> ${omni.contentMetadata.Game[a.contentId.toString()]!.name}`
+						`> ${
+							omni.contentMetadata.Game[a.contentId.toString()]!
+								.name
+						}`
 				);
 			return interaction
 				.followUp({
