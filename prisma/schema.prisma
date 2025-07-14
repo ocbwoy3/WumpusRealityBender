@@ -16,3 +16,8 @@ model AIUserAlias {
     id    String  @id
     alias String?
 }
+
+model ReviewDBState {
+	id String @id @default("current")
+	state String
+}

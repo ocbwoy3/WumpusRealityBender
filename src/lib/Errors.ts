@@ -18,3 +18,19 @@ export class RobloxError extends Error {
 		this.name = "RobloxError";
 	}
 }
+
+
+export class ExternalAPIError extends Error {
+	constructor(message: any) {
+		super(message);
+		this.name = "ExternalAPIError";
+	}
+}
+
+
+export class SuperError extends Error {
+	constructor(service: string, message: any) {
+		super(message);
+		this.name = service + "Error";
+	}
+}
