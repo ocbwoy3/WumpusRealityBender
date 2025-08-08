@@ -32,7 +32,7 @@ WRBEevntManager.on("RobloxLogin", async () => {
 				let p: UserPresence[] = [];
 				try {
 					// Split friends into batches
-					const friendIds = friends.data.map((a) => a.id);
+					const friendIds = [...friends.data.map((a) => a.id), user.id];
 					for (let i = 0; i < friendIds.length; i += BATCH_SIZE) {
 						const batch = friendIds.slice(i, i + BATCH_SIZE);
 						const batchPresences = (await getPresences(batch))

@@ -18,3 +18,6 @@ class EventManager {
 
 // Example usage:
 export const WRBEevntManager = new EventManager();
+
+// Re-export WRBPluginData from moduleDataReg
+export { WRBPluginData } from "./moduleDataReg";

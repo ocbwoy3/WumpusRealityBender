@@ -95,7 +95,7 @@ export class UserCommand extends Subcommand {
 									))
 									.addTextDisplayComponents(
 										new TextDisplayBuilder()
-											.setContent(`# ${music.name}${music.contentRating === "explicit" ? " 🅴" : ""}\nby **${music.artistName}**\n${music.albumName}\n${music.inFavorites ? "[inFavourites] " : ""}${music.inLibrary ? "[inLibrary] " : ""}`)
+											.setContent(`# ${music.name}${music.contentRating === "explicit" ? " 🅴" : ""}\nby **${music.artistName}**\n[${music.albumName}](${music.url.replaceAll(/[a-zA-Z0-9\-\_]+\/([0-9]+)\/?\?i=.*$/gi,"-/$1")})\n${music.inFavorites ? "[inFavourites] " : ""}${music.inLibrary ? "[inLibrary] " : ""}`)
 									)
 								)
 								.addActionRowComponents(

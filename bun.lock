@@ -23,7 +23,7 @@
         "dotenv": "^16.5.0",
         "fast-fuzzy": "^1.12.0",
         "figlet": "^1.8.1",
-        "noblox.js": "^6.1.1",
+        "noblox.js": "^6.2.0",
         "prisma": "^6.6.0",
       },
       "devDependencies": {
@@ -450,7 +450,7 @@
 
     "ms": ["ms@2.1.3", "", {}, "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="],
 
-    "noblox.js": ["noblox.js@6.1.1", "", { "dependencies": { "@microsoft/signalr": "^8.0.7", "chalk": "^5.3.0", "cheerio": "^1.0.0-rc.10", "entities": "^5.0.0", "figlet": "^1.7.0", "postman-request": "^2.88.1-postman.34" } }, "sha512-pR/GLEaiaOHm9DjRj+sYJ54ulNyUoarRR8A44ce7Ix9saFa54tTwKQVvcIednGnWO/2BaqENP4s1EElZMfJyog=="],
+    "noblox.js": ["noblox.js@6.2.0", "", { "dependencies": { "@microsoft/signalr": "^8.0.7", "chalk": "^5.3.0", "cheerio": "^1.0.0-rc.10", "entities": "^5.0.0", "figlet": "^1.7.0", "postman-request": "^2.88.1-postman.34" } }, "sha512-LJZctENpuS3/iNQI/c1kPvmPdRhfZbiQLvMM0mXXwnApEO/6NXGlvYiBpMknBtHeDbTbrTaWa0BD6SeMn/z7Xw=="],
 
     "node-fetch": ["node-fetch@2.7.0", "", { "dependencies": { "whatwg-url": "^5.0.0" }, "peerDependencies": { "encoding": "^0.1.0" }, "optionalPeers": ["encoding"] }, "sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A=="],
 

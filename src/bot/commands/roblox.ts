@@ -1,3 +1,14 @@
+import { RobloxError } from "@/Errors";
+import { prisma } from "@/prisma";
+import { getServerUDMUXDetails } from "@/roblox";
+import { getOmniRecommendationsHome } from "@/roblox/omniRecommendations";
+import {
+	SubdivisionIsoFriendlyNames,
+	udmuxGameInfo,
+	udmuxSessionId
+} from "@/roblox/udmuxTypes";
+import { WRBPluginData } from "@/wrb_core/moduleDataReg";
+import { TimedDataCache } from "@ocbwoy3/libocbwoy3";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import {
 	ApplicationIntegrationType,
@@ -6,7 +17,7 @@ import {
 	MessageFlags,
 	TextDisplayBuilder
 } from "discord.js";
-import { prisma } from "@/prisma";
+import { search } from "fast-fuzzy";
 import {
 	getAuthenticatedUser,
 	getIdFromUsername,
@@ -16,12 +27,6 @@ import {
 	getUserInfo,
 	sendFriendRequest
 } from "noblox.js";
-import { getOmniRecommendationsHome } from "@/roblox/omniRecommendations";
-import { TimedDataCache } from "@ocbwoy3/libocbwoy3";
-import { WRBPluginData } from "@/wrb_core/moduleDataReg";
-import { search } from "fast-fuzzy";
-import { getServerUDMUXDetails } from "@/roblox";
-import { SubdivisionIsoFriendlyNames, udmuxGameInfo, udmuxSessionId } from "@/roblox/udmuxTypes";
 
 const gameNameCache = new TimedDataCache(60_000);
 const skidCache = new TimedDataCache(60_000);
@@ -67,7 +72,7 @@ export class UserCommand extends Subcommand {
 							true
 						);
 						await interaction.deferReply({
-							flags: [MessageFlags.Ephemeral],
+							// flags: [MessageFlags.Ephemeral],
 							withResponse: true
 						});
 						const skids =
@@ -80,27 +85,39 @@ export class UserCommand extends Subcommand {
 							});
 						}
 						try {
-							const { jobId, joinScript } =
+							const { jobId, joinScript, message } =
 								(await getServerUDMUXDetails(
 									mr.place,
 									mr.game
 								)) as udmuxGameInfo;
 
+							if (!jobId || !joinScript) {
+								throw new RobloxError(message);
+							}
+
 							const containers = [
 								new ContainerBuilder()
 									.setAccentColor(0x89b4fa)
-									.addTextDisplayComponents(
-										new TextDisplayBuilder().setContent(
-											`### ${jobId} (${mr.place})
-												**Server Address:** \`${joinScript.MachineAddress}:${joinScript.ServerPort}\`
+									/*
+**Server Address:** \`${joinScript.MachineAddress}:${joinScript.ServerPort}\`
 												**UDMUX Server Address:** \`${
 													!joinScript
 														.UdmuxEndpoints[0]
 														? "none"
 														: `${joinScript.UdmuxEndpoints[0].Address}:${joinScript.UdmuxEndpoints[0].Port}`
 												}\`
-												**Client Public UserId:** ${joinScript.UserId}
-												**Client Country:** ${joinScript.CountryCode}
+									*/
+									.addTextDisplayComponents(
+										new TextDisplayBuilder().setContent(
+											`### ${jobId} (${mr.place})
+												**Join command (xdg-utils)**
+												\`\`\`bash
+												xdg-open "roblox://placeId=${mr.place}&jobId=${jobId}"
+												\`\`\`
+												**Join command (flatpak)**
+												\`\`\`bash
+												flatpak run org.vinegarhq.Sober "roblox://placeId=${mr.place}&jobId=${jobId}"
+												\`\`\`
 												**Roblox Data Center ID:** ${joinScript.DataCenterId}
 												**Server RCCService Version:** ${joinScript.RccVersion}
 												`.replaceAll("\t", "")
@@ -109,36 +126,52 @@ export class UserCommand extends Subcommand {
 							];
 
 							try {
-								const lol = JSON.parse(joinScript.SessionId) as udmuxSessionId;
-								const x = lol.SubdivisionIso in SubdivisionIsoFriendlyNames
-									? `${SubdivisionIsoFriendlyNames[lol.SubdivisionIso as keyof typeof SubdivisionIsoFriendlyNames]} - ${lol.SubdivisionIso}`
-									: lol.SubdivisionIso;
-								containers.push(new ContainerBuilder()
-								.setAccentColor(0x89b4fa)
-								.addTextDisplayComponents(
-									new TextDisplayBuilder().setContent(
-										`**Client User Real Age:** ${lol.Age}
+								const lol = JSON.parse(
+									joinScript.SessionId
+								) as udmuxSessionId;
+								const x =
+									lol.SubdivisionIso in
+									SubdivisionIsoFriendlyNames
+										? `${
+												SubdivisionIsoFriendlyNames[
+													lol.SubdivisionIso as keyof typeof SubdivisionIsoFriendlyNames
+												]
+										  } - ${lol.SubdivisionIso}`
+										: lol.SubdivisionIso;
+								containers.push(
+									new ContainerBuilder()
+										.setAccentColor(0x89b4fa)
+										.addTextDisplayComponents(
+											new TextDisplayBuilder().setContent(
+												`**Client User Real Human Age:** ${
+													lol.Age
+												}
 										**Policy Country ID:** ${lol.PolicyCountryId}
-										**Client VC Enabled:** ${lol.IsUserVoiceChatEnabled === true ? "yes": "no"}
-										**Client Face Anim Enabled:** ${lol.IsUserAvatarVideoEnabled === true ? "yes": "no"}
-										**Game Join Region:** ${lol.GameJoinRegion}
-										**Client Subdivision ISO:** ${x}`.replaceAll("\t", "")
-									)
-								))
+										**Client VC Enabled:** ${lol.IsUserVoiceChatEnabled === true ? "yes" : "no"}
+										**Client Face Anim Enabled:** ${
+											lol.IsUserAvatarVideoEnabled ===
+											true
+												? "yes"
+												: "no"
+										}
+										**Game Server Region:** ${lol.GameJoinRegion}`.replaceAll("\t", "")
+											)
+										)
+								);
 							} catch {}
 
 							return await interaction.followUp({
 								components: containers,
 								flags: [
-									MessageFlags.Ephemeral,
+									// MessageFlags.Ephemeral,
 									MessageFlags.IsComponentsV2
 								]
 							});
 						} catch (e_) {
 							console.error(e_);
 							return await interaction.followUp({
-								content: ":(",
-								flags: [MessageFlags.Ephemeral]
+								content: `${e_}`,
+								// flags: [MessageFlags.Ephemeral]
 							});
 						}
 					}
@@ -231,6 +264,10 @@ export class UserCommand extends Subcommand {
 							flags: [MessageFlags.Ephemeral]
 						});
 					}
+				},
+				{
+					name: "jobmonitor",
+					chatInputRun: "chatInputJobMonitor"
 				}
 			]
 		});
@@ -333,6 +370,13 @@ export class UserCommand extends Subcommand {
 								.setName("roblox_friend")
 								.setDescription("Your friend to get details of")
 								.setAutocomplete(true)
+						)
+				)
+				.addSubcommand((command) =>
+					command
+						.setName("jobmonitor")
+						.setDescription(
+							"Check job monitoring status"
 						)
 				)
 		);
@@ -570,6 +614,41 @@ export class UserCommand extends Subcommand {
 					content: `> ${x}`
 				})
 				.catch((a) => {});
+		}
+	}
+
+		public async chatInputJobMonitor(
+		interaction: Subcommand.ChatInputCommandInteraction
+	) {
+		await interaction.deferReply({
+			withResponse: true,
+			flags: [MessageFlags.Ephemeral]
+		});
+
+		try {
+			const pluginData = WRBPluginData.getPluginData("JobMonitor");
+
+			if (!pluginData) {
+				return await interaction.followUp({
+					content: "❌ Failed to get job monitor plugin data",
+					flags: [MessageFlags.Ephemeral]
+				});
+			}
+
+			return await interaction.followUp({
+				content: `🔔 **Job Monitor Status**\n\n` +
+					`**Monitoring user:** ${pluginData.targetUserId}\n` +
+					`**Is monitoring:** ${pluginData.isMonitoring ? '✅ Yes' : '❌ No'}\n` +
+					`**Last known job:** ${pluginData.lastKnownJobId || 'None'}\n\n` +
+					`Notifications will be sent to your DM when job changes are detected.`,
+				flags: [MessageFlags.Ephemeral]
+			});
+
+		} catch (error) {
+			return await interaction.followUp({
+				content: `❌ Error getting job monitor status: ${error}`,
+				flags: [MessageFlags.Ephemeral]
+			});
 		}
 	}
 }

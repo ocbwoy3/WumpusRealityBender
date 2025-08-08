@@ -1,11 +1,13 @@
 type PluginDataMap = {
 	GMF: GameRegPluginData;
 	WRBDummyDataPlugin: WRBDummyData;
+	JobMonitor: JobMonitorPluginData;
 };
 
 export const ALL_PLUGIN_NAMES = [
 	"GMF",
-	"WRBDummyDataPlugin"
+	"WRBDummyDataPlugin",
+	"JobMonitor"
 ] as const;
 type PLUGIN_NAMES = keyof PluginDataMap;
 
@@ -15,6 +17,12 @@ export type GameRegPluginData = {
 
 export type WRBDummyData = {
 	hi: boolean;
+};
+
+export type JobMonitorPluginData = {
+	lastKnownJobId: string | null;
+	targetUserId: number;
+	isMonitoring: boolean;
 };
 
 export class PluginDataManager {
@@ -30,6 +38,11 @@ export class PluginDataManager {
 		});
 		this.setPluginData("WRBDummyDataPlugin", {
 			hi: true
+		});
+		this.setPluginData("JobMonitor", {
+			lastKnownJobId: null,
+			targetUserId: process.env.JOB_MONITOR_USER_ID ? parseInt(process.env.JOB_MONITOR_USER_ID, 10) : 1083030325,
+			isMonitoring: false
 		});
 	}
 

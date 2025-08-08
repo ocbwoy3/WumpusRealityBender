@@ -24,5 +24,7 @@ export async function getServerUDMUXDetails(
 		}
 	);
 
-	return await res.json();
+	const J = await res.json();
+	console.log(J);
+	return J;
 }
